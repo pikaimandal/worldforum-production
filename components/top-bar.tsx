@@ -18,12 +18,12 @@ export default function TopBar({ isDarkMode, onToggleDarkMode }: TopBarProps) {
           <div className="w-8 h-8">
             <img
               src="/forum-logo.png"
-              alt="Forum Logo"
+              alt="World Forum Logo"
               className="w-full h-full object-contain rounded-lg"
               style={{ borderRadius: "8px" }}
             />
           </div>
-          <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>FORUM</h1>
+          <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>WORLD FORUM</h1>
         </div>
 
         <Button

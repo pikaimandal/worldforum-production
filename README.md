@@ -1,30 +1,52 @@
-# Worldcoin Forum UI
+# World Forum
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/pikaimandalteam/v0-worldcoin-forum-ui-gq)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/QicydGNs6ja)
+A Worldcoin mini app for verified human community discussions.
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+World Forum is the first open chatting style forum app designed as a Worldcoin mini app. It provides a platform where verified humans can connect and have meaningful conversations globally.
 
-## Deployment
+## Features
 
-Your project is live at:
+- **Worldcoin Integration**: Orb verification for authentic human users
+- **Real-time Chat**: Live messaging with threaded conversations
+- **Social Interactions**: Upvoting, downvoting, and emoji reactions
+- **Moderation Tools**: Report system and content filtering
+- **Mobile-First Design**: Optimized for native mobile app experience
+- **Dark/Light Mode**: System-wide theme support
 
-**[https://vercel.com/pikaimandalteam/v0-worldcoin-forum-ui-gq](https://vercel.com/pikaimandalteam/v0-worldcoin-forum-ui-gq)**
+## Tech Stack
 
-## Build your app
+- **Next.js 15.2.4** with App Router
+- **React 19** with TypeScript
+- **Tailwind CSS** for styling
+- **Radix UI** for accessible components
+- **shadcn/ui** component library
 
-Continue building your app on:
+## Getting Started
 
-**[https://v0.dev/chat/projects/QicydGNs6ja](https://v0.dev/chat/projects/QicydGNs6ja)**
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-## How It Works
+2. Run the development server:
+   ```bash
+   pnpm dev
+   ```
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+app/                    # Next.js App Router
+components/            # React components
+├── ui/               # shadcn/ui components
+public/               # Static assets
+styles/               # Global styles
+```
+
+## License
+
+MIT License - see LICENSE file for details.

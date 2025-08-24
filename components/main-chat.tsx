@@ -42,7 +42,7 @@ export default function MainChat({ user }: MainChatProps) {
       id: "1",
       username: "@alice",
       isOrbVerified: true,
-      text: "Welcome to Forum! This is where verified humans connect globally. 🌍",
+      text: "Welcome to World Forum! This is where verified humans connect globally. 🌍",
       timestamp: new Date(Date.now() - 300000),
       upvotes: 12,
       downvotes: 0,

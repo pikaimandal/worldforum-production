@@ -6,14 +6,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "FORUM - Talk to Everyone",
+  title: "WORLD FORUM - Talk to Everyone",
   description: "A verified human community platform powered by Worldcoin",
   icons: {
     icon: "/forum-app-logo.png",
     shortcut: "/forum-app-logo.png",
     apple: "/forum-app-logo.png",
   },
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({

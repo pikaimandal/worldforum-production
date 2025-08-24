@@ -35,14 +35,14 @@ export default function SplashScreen({ onLogin, isLoading }: SplashScreenProps) 
         <div className="w-24 h-24 mx-auto mb-8">
           <img
             src="/forum-logo.png"
-            alt="Forum Logo"
+            alt="World Forum Logo"
             className="w-full h-full object-contain rounded-2xl"
             style={{ borderRadius: "16px" }}
           />
         </div>
 
         {/* App name */}
-        <h1 className="text-4xl font-bold text-white tracking-tight">FORUM</h1>
+        <h1 className="text-4xl font-bold text-white tracking-tight">WORLD FORUM</h1>
 
         {/* Animated tagline */}
         <div className="h-8">

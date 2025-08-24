@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import SplashScreen from "@/components/splash-screen"
 import MainChat from "@/components/main-chat"
 
-export default function ForumApp() {
+export default function WorldForumApp() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<{ username: string; isOrbVerified: boolean } | null>(null)

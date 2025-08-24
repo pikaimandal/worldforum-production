@@ -29,7 +29,7 @@ export default function BlockedUserModal({ onClose, isDarkMode }: BlockedUserMod
           </p>
 
           <p className={`text-sm mb-6 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-            Contact us at <span className="text-blue-500">support@forum.online</span>
+            Contact us at <span className="text-blue-500">support@worldforum.online</span>
           </p>
 
           <Button onClick={onClose} className="w-full">
