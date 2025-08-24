@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageCircle, Heart, ThumbsDown, Smile, AlertTriangle } from "lucide-react"
+import { MessageCircle, ThumbsUp, ThumbsDown, Smile, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface MessageType {
@@ -149,7 +149,7 @@ export default function Message({
             onClick={() => onVote(message.id, "up")}
             className={`flex items-center space-x-1 ${isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
           >
-            <Heart className="w-4 h-4" />
+            <ThumbsUp className="w-4 h-4" />
             <span className="text-sm">{message.upvotes}</span>
           </Button>
 
