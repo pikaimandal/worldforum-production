@@ -48,8 +48,9 @@ export default function WorldForumApp() {
         // Check if user is ORB verified
         const isOrbVerified = await getIsUserVerified(authData.address)
         
-        // Get username from MiniKit
-        const username = MiniKit.user?.username || authData.address.slice(0, 8)
+        // Get username from MiniKit and add @ prefix for UI display
+        const rawUsername = MiniKit.user?.username || authData.address.slice(0, 8)
+        const username = rawUsername.startsWith('@') ? rawUsername : `@${rawUsername}`
         
         const worldUser: WorldUser = {
           walletAddress: authData.address,

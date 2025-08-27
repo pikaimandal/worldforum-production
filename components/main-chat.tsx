@@ -42,7 +42,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 300000),
       upvotes: 12,
       downvotes: 0,
-      reactions: { "👋": 5, "🔥": 3 },
+      reactions: { "👋": 5, "🔥": 3, "👋_users": ["@bob", "@charlie"], "🔥_users": ["@diana", "@erik", "@fiona"] },
       userVote: null,
     },
     {
@@ -53,7 +53,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 280000),
       upvotes: 8,
       downvotes: 1,
-      reactions: { "💯": 2 },
+      reactions: { "💯": 2, "💯_users": ["@alice", "@charlie"] },
       userVote: null,
     },
     {
@@ -64,7 +64,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 260000),
       upvotes: 15,
       downvotes: 0,
-      reactions: { "🚀": 8, "✨": 4 },
+      reactions: { "🚀": 8, "✨": 4, "🚀_users": ["@alice", "@bob", "@diana"], "✨_users": ["@erik", "@fiona"] },
       userVote: null,
     },
     {
@@ -75,7 +75,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 240000),
       upvotes: 23,
       downvotes: 0,
-      reactions: { "❤️": 12, "💎": 8 },
+      reactions: { "❤️": 12, "💎": 8, "❤️_users": ["@alice", "@bob"], "💎_users": ["@charlie", "@erik"] },
       userVote: null,
     },
     {
@@ -86,7 +86,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 220000),
       upvotes: 18,
       downvotes: 2,
-      reactions: { "🎉": 6, "👏": 4 },
+      reactions: { "🎉": 6, "👏": 4, "🎉_users": ["@alice", "@diana"], "👏_users": ["@bob", "@charlie"] },
       userVote: null,
     },
     {
@@ -97,7 +97,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 200000),
       upvotes: 31,
       downvotes: 1,
-      reactions: { "🔥": 15, "💯": 9 },
+      reactions: { "🔥": 15, "💯": 9, "🔥_users": ["@alice", "@bob", "@charlie"], "💯_users": ["@diana", "@erik"] },
       userVote: null,
     },
     {
@@ -108,7 +108,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 180000),
       upvotes: 27,
       downvotes: 0,
-      reactions: { "📈": 11, "⚡": 7 },
+      reactions: { "📈": 11, "⚡": 7, "📈_users": ["@alice", "@fiona"], "⚡_users": ["@bob", "@diana"] },
       userVote: null,
     },
     {
@@ -119,7 +119,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 160000),
       upvotes: 19,
       downvotes: 0,
-      reactions: { "👍": 8, "😍": 5 },
+      reactions: { "👍": 8, "😍": 5, "👍_users": ["@alice", "@charlie"], "😍_users": ["@erik", "@george"] },
       userVote: null,
     },
     {
@@ -130,7 +130,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 140000),
       upvotes: 22,
       downvotes: 0,
-      reactions: { "👏": 14, "🎉": 6 },
+      reactions: { "👏": 14, "🎉": 6, "👏_users": ["@alice", "@bob", "@fiona"], "🎉_users": ["@diana", "@hannah"] },
       userVote: null,
     },
     {
@@ -141,7 +141,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 120000),
       upvotes: 16,
       downvotes: 0,
-      reactions: { "🌍": 9, "❤️": 4 },
+      reactions: { "🌍": 9, "❤️": 4, "🌍_users": ["@alice", "@george"], "❤️_users": ["@erik", "@ivan"] },
       userVote: null,
     },
     {
@@ -152,7 +152,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 100000),
       upvotes: 14,
       downvotes: 1,
-      reactions: { "⚡": 7, "💯": 3 },
+      reactions: { "⚡": 7, "💯": 3, "⚡_users": ["@alice", "@julia"], "💯_users": ["@fiona", "@hannah"] },
       userVote: null,
     },
     {
@@ -163,7 +163,7 @@ export default function MainChat({ user }: MainChatProps) {
       timestamp: new Date(Date.now() - 80000),
       upvotes: 20,
       downvotes: 0,
-      reactions: { "🚀": 10, "🔥": 6 },
+      reactions: { "🚀": 10, "🔥": 6, "🚀_users": ["@alice", "@ivan", "@kevin"], "🔥_users": ["@bob", "@julia"] },
       userVote: null,
     },
   ])
@@ -345,7 +345,7 @@ export default function MainChat({ user }: MainChatProps) {
 
     const newMessage: Message = {
       id: Date.now().toString(),
-      username: user.username,
+      username: user.username, // Already has @ prefix from authentication
       isOrbVerified: user.isOrbVerified,
       text,
       timestamp: new Date(),
