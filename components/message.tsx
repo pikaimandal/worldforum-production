@@ -13,6 +13,7 @@ interface MessageType {
   downvotes: number
   reactions: { [emoji: string]: number | string[] }
   replyTo?: string
+  profilePictureUrl?: string
 }
 
 interface MessageProps {
@@ -66,6 +67,22 @@ export default function Message({
         >
           <div className="flex items-center space-x-2 mb-1">
             <span className="text-blue-500 text-sm">↳</span>
+            {/* Profile picture for reply - 16x16 */}
+            <div className="w-4 h-4 rounded-full overflow-hidden flex-shrink-0">
+              {replyToMessage.profilePictureUrl ? (
+                <img
+                  src={replyToMessage.profilePictureUrl}
+                  alt={`${replyToMessage.username} profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
+                  <span className="text-xs text-gray-500">
+                    {replyToMessage.username.charAt(1)?.toUpperCase() || "?"}
+                  </span>
+                </div>
+              )}
+            </div>
             <span className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
               {replyToMessage.username}
             </span>
@@ -78,6 +95,22 @@ export default function Message({
       <div className={`p-4 rounded-2xl ${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-sm`}>
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center space-x-2">
+            {/* Profile picture for main message - 20x20 */}
+            <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+              {message.profilePictureUrl ? (
+                <img
+                  src={message.profilePictureUrl}
+                  alt={`${message.username} profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
+                  <span className="text-xs text-gray-500">
+                    {message.username.charAt(1)?.toUpperCase() || "?"}
+                  </span>
+                </div>
+              )}
+            </div>
             <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{message.username}</span>
             {message.isOrbVerified && <VerificationBadge />}
             <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>

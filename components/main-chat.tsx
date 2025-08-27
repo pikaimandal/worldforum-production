@@ -24,6 +24,7 @@ interface Message {
   replyTo?: string
   replies?: string[]
   userVote?: "up" | "down" | null
+  profilePictureUrl?: string
 }
 
 interface MainChatProps {
@@ -44,6 +45,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "👋": 5, "🔥": 3, "👋_users": ["@bob", "@charlie"], "🔥_users": ["@diana", "@erik", "@fiona"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=alice",
     },
     {
       id: "2",
@@ -55,6 +57,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 1,
       reactions: { "💯": 2, "💯_users": ["@alice", "@charlie"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=bob",
     },
     {
       id: "3",
@@ -66,6 +69,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "🚀": 8, "✨": 4, "🚀_users": ["@alice", "@bob", "@diana"], "✨_users": ["@erik", "@fiona"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=charlie",
     },
     {
       id: "4",
@@ -77,6 +81,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "❤️": 12, "💎": 8, "❤️_users": ["@alice", "@bob"], "💎_users": ["@charlie", "@erik"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=diana",
     },
     {
       id: "5",
@@ -88,6 +93,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 2,
       reactions: { "🎉": 6, "👏": 4, "🎉_users": ["@alice", "@diana"], "👏_users": ["@bob", "@charlie"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=erik",
     },
     {
       id: "6",
@@ -99,6 +105,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 1,
       reactions: { "🔥": 15, "💯": 9, "🔥_users": ["@alice", "@bob", "@charlie"], "💯_users": ["@diana", "@erik"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=fiona",
     },
     {
       id: "7",
@@ -110,6 +117,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "📈": 11, "⚡": 7, "📈_users": ["@alice", "@fiona"], "⚡_users": ["@bob", "@diana"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=george",
     },
     {
       id: "8",
@@ -121,6 +129,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "👍": 8, "😍": 5, "👍_users": ["@alice", "@charlie"], "😍_users": ["@erik", "@george"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=hannah",
     },
     {
       id: "9",
@@ -132,6 +141,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "👏": 14, "🎉": 6, "👏_users": ["@alice", "@bob", "@fiona"], "🎉_users": ["@diana", "@hannah"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=ivan",
     },
     {
       id: "10",
@@ -143,6 +153,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "🌍": 9, "❤️": 4, "🌍_users": ["@alice", "@george"], "❤️_users": ["@erik", "@ivan"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=julia",
     },
     {
       id: "11",
@@ -154,6 +165,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 1,
       reactions: { "⚡": 7, "💯": 3, "⚡_users": ["@alice", "@julia"], "💯_users": ["@fiona", "@hannah"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=kevin",
     },
     {
       id: "12",
@@ -165,6 +177,7 @@ export default function MainChat({ user }: MainChatProps) {
       downvotes: 0,
       reactions: { "🚀": 10, "🔥": 6, "🚀_users": ["@alice", "@ivan", "@kevin"], "🔥_users": ["@bob", "@julia"] },
       userVote: null,
+      profilePictureUrl: "https://api.dicebear.com/7.x/avatars/svg?seed=luna",
     },
   ])
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -355,6 +368,7 @@ export default function MainChat({ user }: MainChatProps) {
       replyTo: replyingTo || undefined,
       replies: [],
       userVote: null,
+      profilePictureUrl: user.profilePictureUrl,
     }
 
     setMessages((prev) => {

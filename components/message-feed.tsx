@@ -12,6 +12,7 @@ interface MessageType {
   downvotes: number
   reactions: { [emoji: string]: number | string[] }
   replyTo?: string
+  profilePictureUrl?: string
 }
 
 interface MessageFeedProps {
