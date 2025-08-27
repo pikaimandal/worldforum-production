@@ -179,8 +179,8 @@ export default function Message({
 
           <button
             onClick={() => onVote(message.id, "up")}
-            className={`flex items-center space-x-1 p-2 rounded-lg transition-colors ${
-              isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"
+            className={`flex items-center space-x-1 transition-colors focus:outline-none active:bg-transparent hover:opacity-70 ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
             <ThumbsUp 
@@ -197,8 +197,8 @@ export default function Message({
 
           <button
             onClick={() => onVote(message.id, "down")}
-            className={`flex items-center space-x-1 p-2 rounded-lg transition-colors ${
-              isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"
+            className={`flex items-center space-x-1 transition-colors focus:outline-none active:bg-transparent hover:opacity-70 ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
             <ThumbsDown 
