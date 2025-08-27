@@ -44,7 +44,7 @@ export default function SplashScreen({ onLogin, isLoading }: SplashScreenProps) 
           {/* Logo */}
           <div className="w-24 h-24 mx-auto mb-8">
             <img
-              src="/world-forum-logo.png"
+              src="/world-forum-app-new-logo.png"
               alt="World Forum Logo"
               className="w-full h-full object-contain rounded-2xl"
               style={{ borderRadius: "16px" }}

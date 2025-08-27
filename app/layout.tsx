@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   title: "WORLD FORUM - Talk to Everyone",
   description: "A verified human community platform powered by Worldcoin",
   icons: {
-    icon: "/world-forum-icon.png",
-    shortcut: "/world-forum-icon.png",
-    apple: "/world-forum-icon.png",
+    icon: "/world-forum-app-new-logo.png",
+    shortcut: "/world-forum-app-new-logo.png",
+    apple: "/world-forum-app-new-logo.png",
   },
 }
 
