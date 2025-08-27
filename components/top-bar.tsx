@@ -17,7 +17,7 @@ export default function TopBar({ isDarkMode, onToggleDarkMode }: TopBarProps) {
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8">
             <img
-              src="/world-forum-app-new-logo.png"
+              src={isDarkMode ? "/wf-icon-white.png" : "/wf-icon-black.png"}
               alt="World Forum Logo"
               className="w-full h-full object-contain rounded-lg"
               style={{ borderRadius: "8px" }}
