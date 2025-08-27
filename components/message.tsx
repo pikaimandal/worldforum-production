@@ -14,6 +14,7 @@ interface MessageType {
   reactions: { [emoji: string]: number | string[] }
   replyTo?: string
   profilePictureUrl?: string
+  userVote?: "up" | "down" | null
 }
 
 interface MessageProps {
@@ -176,25 +177,41 @@ export default function Message({
             <span className="text-sm">Reply</span>
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={() => onVote(message.id, "up")}
-            className={`flex items-center space-x-1 ${isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
+            className={`flex items-center space-x-1 p-2 rounded-lg transition-colors ${
+              isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"
+            }`}
           >
-            <ThumbsUp className="w-4 h-4" />
+            <ThumbsUp 
+              className={`w-4 h-4 ${
+                message.userVote === "up" 
+                  ? "fill-white stroke-white" 
+                  : isDarkMode 
+                    ? "stroke-gray-400" 
+                    : "stroke-gray-600"
+              }`} 
+            />
             <span className="text-sm">{message.upvotes}</span>
-          </Button>
+          </button>
 
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={() => onVote(message.id, "down")}
-            className={`flex items-center space-x-1 ${isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
+            className={`flex items-center space-x-1 p-2 rounded-lg transition-colors ${
+              isDarkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"
+            }`}
           >
-            <ThumbsDown className="w-4 h-4" />
+            <ThumbsDown 
+              className={`w-4 h-4 ${
+                message.userVote === "down" 
+                  ? "fill-white stroke-white" 
+                  : isDarkMode 
+                    ? "stroke-gray-400" 
+                    : "stroke-gray-600"
+              }`} 
+            />
             <span className="text-sm">{message.downvotes}</span>
-          </Button>
+          </button>
 
           <Button
             variant="ghost"
