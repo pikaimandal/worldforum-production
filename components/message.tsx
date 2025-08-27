@@ -186,7 +186,9 @@ export default function Message({
             <ThumbsUp 
               className={`w-4 h-4 ${
                 message.userVote === "up" 
-                  ? "fill-white stroke-white" 
+                  ? isDarkMode 
+                    ? "fill-white stroke-white" 
+                    : "fill-black stroke-black"
                   : isDarkMode 
                     ? "stroke-gray-400" 
                     : "stroke-gray-600"
@@ -204,7 +206,9 @@ export default function Message({
             <ThumbsDown 
               className={`w-4 h-4 ${
                 message.userVote === "down" 
-                  ? "fill-white stroke-white" 
+                  ? isDarkMode 
+                    ? "fill-white stroke-white" 
+                    : "fill-black stroke-black"
                   : isDarkMode 
                     ? "stroke-gray-400" 
                     : "stroke-gray-600"
