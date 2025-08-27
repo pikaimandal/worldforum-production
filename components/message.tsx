@@ -11,7 +11,7 @@ interface MessageType {
   timestamp: Date
   upvotes: number
   downvotes: number
-  reactions: { [emoji: string]: number }
+  reactions: { [emoji: string]: number | string[] }
   replyTo?: string
 }
 
@@ -107,7 +107,7 @@ export default function Message({
               .filter(([key]) => !key.endsWith("_users"))
               .map(([emoji, count]) => {
                 const userReactionKey = `${emoji}_users`
-                const userReactions = message.reactions[userReactionKey] || []
+                const userReactions = (message.reactions[userReactionKey] as string[]) || []
                 const hasUserReacted = userReactions.includes(currentUser)
 
                 return (
@@ -124,7 +124,7 @@ export default function Message({
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {emoji} {count}
+                    {emoji} {count as number}
                   </button>
                 )
               })}

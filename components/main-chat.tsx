@@ -10,11 +10,7 @@ import ReportModal from "@/components/report-modal"
 import BlockedUserModal from "@/components/blocked-user-modal"
 import { Button } from "@/components/ui/button"
 import { ChevronDown } from "lucide-react"
-
-interface User {
-  username: string
-  isOrbVerified: boolean
-}
+import { WorldUser } from "@/types/user"
 
 interface Message {
   id: string
@@ -24,14 +20,14 @@ interface Message {
   timestamp: Date
   upvotes: number
   downvotes: number
-  reactions: { [emoji: string]: number }
+  reactions: { [emoji: string]: number | string[] }
   replyTo?: string
   replies?: string[]
   userVote?: "up" | "down" | null
 }
 
 interface MainChatProps {
-  user: User
+  user: WorldUser
 }
 
 export default function MainChat({ user }: MainChatProps) {
@@ -275,13 +271,14 @@ export default function MainChat({ user }: MainChatProps) {
         if (msg.id === messageId) {
           const currentReactions = { ...msg.reactions }
           const userReactionKey = `${emoji}_users`
-          const userReactions = currentReactions[userReactionKey] || []
+          const userReactions = (currentReactions[userReactionKey] as string[]) || []
+          const currentCount = (currentReactions[emoji] as number) || 0
 
           // Check if user already reacted with this emoji
           if (userReactions.includes(user.username)) {
             // Remove user's reaction
-            const updatedUserReactions = userReactions.filter((u) => u !== user.username)
-            const newCount = Math.max(0, (currentReactions[emoji] || 0) - 1)
+            const updatedUserReactions = userReactions.filter((u: string) => u !== user.username)
+            const newCount = Math.max(0, currentCount - 1)
 
             if (newCount === 0) {
               delete currentReactions[emoji]
@@ -292,7 +289,7 @@ export default function MainChat({ user }: MainChatProps) {
             }
           } else {
             // Add user's reaction
-            currentReactions[emoji] = (currentReactions[emoji] || 0) + 1
+            currentReactions[emoji] = currentCount + 1
             currentReactions[userReactionKey] = [...userReactions, user.username]
           }
 

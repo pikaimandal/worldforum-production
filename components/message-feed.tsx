@@ -10,7 +10,7 @@ interface MessageType {
   timestamp: Date
   upvotes: number
   downvotes: number
-  reactions: { [emoji: string]: number }
+  reactions: { [emoji: string]: number | string[] }
   replyTo?: string
 }
 
