@@ -309,8 +309,17 @@ export default function MainChat({ user }: MainChatProps) {
   }
 
   const handleSendMessage = async (text: string) => {
+    console.log('handleSendMessage called with:', { text, user })
+    
     if (!user.id) {
       console.error('Cannot send message: user.id is missing')
+      alert('Error: User ID is missing. Please try logging in again.')
+      return
+    }
+    
+    if (!user.username) {
+      console.error('Cannot send message: user.username is missing')
+      alert('Error: Username is missing. Please try logging in again.')
       return
     }
     
@@ -329,6 +338,7 @@ export default function MainChat({ user }: MainChatProps) {
         text,
         replyTo: replyingTo || undefined,
       })
+      })
       
       console.log('Message created successfully with ID:', messageId)
 
@@ -344,8 +354,19 @@ export default function MainChat({ user }: MainChatProps) {
       setTimeout(() => scrollToBottom(true), 100)
     } catch (error) {
       console.error('Error sending message:', error)
-      // Optionally show user-friendly error message
-      alert('Failed to send message. Please try again.')
+      
+      // Show detailed error message in popup
+      let errorMessage = 'Failed to send message. Please try again.'
+      
+      if (error instanceof Error) {
+        errorMessage = `Error: ${error.message}`
+      } else if (typeof error === 'string') {
+        errorMessage = `Error: ${error}`
+      } else if (error && typeof error === 'object') {
+        errorMessage = `Error: ${JSON.stringify(error)}`
+      }
+      
+      alert(`Failed to send message!\n\nDetails: ${errorMessage}\n\nUser ID: ${user.id}\nUsername: ${user.username}`)
     }
   }
 

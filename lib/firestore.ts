@@ -178,6 +178,14 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
     return messageRef.id
   } catch (error) {
     console.error('Error creating message:', error)
+    
+    // Add more detailed error information
+    if (error instanceof Error) {
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     throw error
   }
 }
