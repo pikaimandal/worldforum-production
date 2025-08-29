@@ -136,6 +136,8 @@ export const updateUserLastSeen = async (userId: string) => {
 // Message Management
 export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 'timestamp' | 'upvotes' | 'downvotes' | 'replies' | 'isEdited'>) => {
   try {
+    console.log('Creating message:', messageData)
+    
     const messageRef = await addDoc(collection(db, 'messages'), {
       ...messageData,
       timestamp: serverTimestamp(),
@@ -145,19 +147,33 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
       isEdited: false,
     })
 
+    console.log('Message document created with ID:', messageRef.id)
+
     // If this is a reply, add to parent's replies array
     if (messageData.replyTo) {
-      const parentRef = doc(db, 'messages', messageData.replyTo)
-      await updateDoc(parentRef, {
-        replies: arrayUnion(messageRef.id)
-      })
+      try {
+        const parentRef = doc(db, 'messages', messageData.replyTo)
+        await updateDoc(parentRef, {
+          replies: arrayUnion(messageRef.id)
+        })
+        console.log('Updated parent message replies')
+      } catch (error) {
+        console.error('Error updating parent message replies:', error)
+        // Don't fail the whole operation if reply update fails
+      }
     }
 
     // Increment user's message count
-    const userRef = doc(db, 'users', messageData.userId)
-    await updateDoc(userRef, {
-      messageCount: increment(1)
-    })
+    try {
+      const userRef = doc(db, 'users', messageData.userId)
+      await updateDoc(userRef, {
+        messageCount: increment(1)
+      })
+      console.log('Updated user message count')
+    } catch (error) {
+      console.error('Error updating user message count:', error)
+      // Don't fail the whole operation if user update fails
+    }
 
     return messageRef.id
   } catch (error) {
