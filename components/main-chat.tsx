@@ -338,7 +338,6 @@ export default function MainChat({ user }: MainChatProps) {
         text,
         replyTo: replyingTo || undefined,
       })
-      })
       
       console.log('Message created successfully with ID:', messageId)
 
