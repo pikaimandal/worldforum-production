@@ -6,6 +6,7 @@ import MainChat from "@/components/main-chat"
 import { MiniKit, MiniAppWalletAuthSuccessPayload } from "@worldcoin/minikit-js"
 import { getIsUserVerified } from "@worldcoin/minikit-js"
 import { WorldUser } from "@/types/user"
+import { createUser, getUserByWalletAddress } from "@/lib/firestore"
 
 type AuthState = "loading" | "splash" | "authenticating" | "verifying" | "authenticated"
 
@@ -52,11 +53,41 @@ export default function WorldForumApp() {
         const rawUsername = MiniKit.user?.username || authData.address.slice(0, 8)
         const username = rawUsername.startsWith('@') ? rawUsername : `@${rawUsername}`
         
+        // Check if user exists in Firebase
+        let existingUser = await getUserByWalletAddress(authData.address)
+        
+        if (!existingUser) {
+          // Create new user in Firebase
+          const userId = await createUser({
+            username,
+            walletAddress: authData.address,
+            isOrbVerified,
+            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${authData.address}`,
+            messageCount: 0,
+            reputation: 0
+          })
+          
+          existingUser = {
+            id: userId,
+            username,
+            walletAddress: authData.address,
+            isOrbVerified,
+            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${authData.address}`,
+            messageCount: 0,
+            reputation: 0,
+            createdAt: new Date() as any,
+            lastSeen: new Date() as any
+          }
+        }
+        
         const worldUser: WorldUser = {
-          walletAddress: authData.address,
-          username,
-          isOrbVerified,
-          profilePictureUrl: MiniKit.user?.profilePictureUrl
+          id: existingUser.id,
+          walletAddress: existingUser.walletAddress,
+          username: existingUser.username,
+          isOrbVerified: existingUser.isOrbVerified,
+          profilePictureUrl: existingUser.profilePictureUrl,
+          messageCount: existingUser.messageCount,
+          reputation: existingUser.reputation
         }
         
         setUser(worldUser)

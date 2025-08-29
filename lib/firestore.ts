@@ -1,0 +1,357 @@
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  orderBy, 
+  limit, 
+  where, 
+  onSnapshot, 
+  serverTimestamp,
+  increment,
+  arrayUnion,
+  arrayRemove,
+  setDoc,
+  Timestamp
+} from 'firebase/firestore'
+import { db } from './firebase'
+
+export interface FirebaseUser {
+  id: string
+  username: string
+  walletAddress: string
+  isOrbVerified: boolean
+  profilePictureUrl: string
+  createdAt: Timestamp
+  lastSeen: Timestamp
+  messageCount: number
+  reputation: number
+}
+
+export interface FirebaseMessage {
+  id: string
+  userId: string
+  username: string
+  text: string
+  timestamp: Timestamp
+  upvotes: number
+  downvotes: number
+  replyTo?: string
+  replies: string[]
+  isEdited: boolean
+  editedAt?: Timestamp
+}
+
+export interface FirebaseVote {
+  messageId: string
+  userId: string
+  type: 'up' | 'down'
+  createdAt: Timestamp
+}
+
+export interface FirebaseReaction {
+  messageId: string
+  userId: string
+  emoji: string
+  createdAt: Timestamp
+}
+
+export interface FirebaseAnnouncement {
+  id: string
+  content: string
+  type: 'info' | 'warning' | 'success' | 'error'
+  priority: 'low' | 'normal' | 'high'
+  isActive: boolean
+  isDismissible: boolean
+  autoHide: boolean
+  hideAfter?: number
+  startDate?: Timestamp
+  endDate?: Timestamp
+  targetUsers: 'all' | 'verified' | 'new_users'
+  styling?: {
+    backgroundColor: string
+    textColor: string
+    borderColor?: string
+    iconEmoji?: string
+  }
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+export interface FirebaseUserPreference {
+  userId: string
+  dismissedAnnouncements: string[]
+  darkMode: boolean
+  notifications: boolean
+  lastUpdated: Timestamp
+}
+
+// User Management
+export const createUser = async (userData: Omit<FirebaseUser, 'id' | 'createdAt' | 'lastSeen'>) => {
+  try {
+    const userRef = await addDoc(collection(db, 'users'), {
+      ...userData,
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+    })
+    return userRef.id
+  } catch (error) {
+    console.error('Error creating user:', error)
+    throw error
+  }
+}
+
+export const getUserByWalletAddress = async (walletAddress: string) => {
+  try {
+    const q = query(collection(db, 'users'), where('walletAddress', '==', walletAddress))
+    const querySnapshot = await getDocs(q)
+    
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      return { id: doc.id, ...doc.data() } as FirebaseUser
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting user by wallet address:', error)
+    throw error
+  }
+}
+
+export const updateUserLastSeen = async (userId: string) => {
+  try {
+    const userRef = doc(db, 'users', userId)
+    await updateDoc(userRef, {
+      lastSeen: serverTimestamp()
+    })
+  } catch (error) {
+    console.error('Error updating user last seen:', error)
+    throw error
+  }
+}
+
+// Message Management
+export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 'timestamp' | 'upvotes' | 'downvotes' | 'replies' | 'isEdited'>) => {
+  try {
+    const messageRef = await addDoc(collection(db, 'messages'), {
+      ...messageData,
+      timestamp: serverTimestamp(),
+      upvotes: 0,
+      downvotes: 0,
+      replies: [],
+      isEdited: false,
+    })
+
+    // If this is a reply, add to parent's replies array
+    if (messageData.replyTo) {
+      const parentRef = doc(db, 'messages', messageData.replyTo)
+      await updateDoc(parentRef, {
+        replies: arrayUnion(messageRef.id)
+      })
+    }
+
+    // Increment user's message count
+    const userRef = doc(db, 'users', messageData.userId)
+    await updateDoc(userRef, {
+      messageCount: increment(1)
+    })
+
+    return messageRef.id
+  } catch (error) {
+    console.error('Error creating message:', error)
+    throw error
+  }
+}
+
+export const getMessages = (callback: (messages: FirebaseMessage[]) => void) => {
+  const q = query(collection(db, 'messages'), orderBy('timestamp', 'asc'), limit(100))
+  
+  return onSnapshot(q, (querySnapshot) => {
+    const messages: FirebaseMessage[] = []
+    querySnapshot.forEach((doc) => {
+      messages.push({ id: doc.id, ...doc.data() } as FirebaseMessage)
+    })
+    callback(messages)
+  })
+}
+
+// Vote Management
+export const voteMessage = async (messageId: string, userId: string, voteType: 'up' | 'down') => {
+  try {
+    const voteRef = doc(db, 'votes', `${messageId}_${userId}`)
+    const existingVote = await getDoc(voteRef)
+
+    if (existingVote.exists()) {
+      const currentVote = existingVote.data().type
+      
+      if (currentVote === voteType) {
+        // Remove vote
+        await deleteDoc(voteRef)
+        
+        // Update message vote count
+        const messageRef = doc(db, 'messages', messageId)
+        await updateDoc(messageRef, {
+          [voteType === 'up' ? 'upvotes' : 'downvotes']: increment(-1)
+        })
+      } else {
+        // Change vote
+        await updateDoc(voteRef, {
+          type: voteType,
+          createdAt: serverTimestamp()
+        })
+        
+        // Update message vote counts
+        const messageRef = doc(db, 'messages', messageId)
+        await updateDoc(messageRef, {
+          [voteType === 'up' ? 'upvotes' : 'downvotes']: increment(1),
+          [voteType === 'up' ? 'downvotes' : 'upvotes']: increment(-1)
+        })
+      }
+    } else {
+      // New vote
+      await setDoc(voteRef, {
+        messageId,
+        userId,
+        type: voteType,
+        createdAt: serverTimestamp()
+      })
+      
+      // Update message vote count
+      const messageRef = doc(db, 'messages', messageId)
+      await updateDoc(messageRef, {
+        [voteType === 'up' ? 'upvotes' : 'downvotes']: increment(1)
+      })
+    }
+  } catch (error) {
+    console.error('Error voting on message:', error)
+    throw error
+  }
+}
+
+export const getUserVote = async (messageId: string, userId: string): Promise<'up' | 'down' | null> => {
+  try {
+    const voteRef = doc(db, 'votes', `${messageId}_${userId}`)
+    const voteDoc = await getDoc(voteRef)
+    
+    if (voteDoc.exists()) {
+      return voteDoc.data().type
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting user vote:', error)
+    return null
+  }
+}
+
+// Reaction Management
+export const reactToMessage = async (messageId: string, userId: string, emoji: string) => {
+  try {
+    const reactionRef = doc(db, 'reactions', `${messageId}_${userId}_${emoji}`)
+    const existingReaction = await getDoc(reactionRef)
+
+    if (existingReaction.exists()) {
+      // Remove reaction
+      await deleteDoc(reactionRef)
+    } else {
+      // Add reaction
+      await setDoc(reactionRef, {
+        messageId,
+        userId,
+        emoji,
+        createdAt: serverTimestamp()
+      })
+    }
+  } catch (error) {
+    console.error('Error reacting to message:', error)
+    throw error
+  }
+}
+
+export const getMessageReactions = (messageId: string, callback: (reactions: { [emoji: string]: { count: number, users: string[] } }) => void) => {
+  const q = query(collection(db, 'reactions'), where('messageId', '==', messageId))
+  
+  return onSnapshot(q, (querySnapshot) => {
+    const reactions: { [emoji: string]: { count: number, users: string[] } } = {}
+    
+    querySnapshot.forEach((doc) => {
+      const reaction = doc.data() as FirebaseReaction
+      if (!reactions[reaction.emoji]) {
+        reactions[reaction.emoji] = { count: 0, users: [] }
+      }
+      reactions[reaction.emoji].count++
+      reactions[reaction.emoji].users.push(reaction.userId)
+    })
+    
+    callback(reactions)
+  })
+}
+
+// Announcement Management
+export const getActiveAnnouncements = (callback: (announcements: FirebaseAnnouncement[]) => void) => {
+  const q = query(
+    collection(db, 'announcements'), 
+    where('isActive', '==', true),
+    orderBy('priority', 'desc'),
+    orderBy('createdAt', 'desc')
+  )
+  
+  return onSnapshot(q, (querySnapshot) => {
+    const announcements: FirebaseAnnouncement[] = []
+    const now = new Date()
+    
+    querySnapshot.forEach((doc) => {
+      const announcement = { id: doc.id, ...doc.data() } as FirebaseAnnouncement
+      
+      // Check if announcement is within date range
+      if (announcement.startDate && announcement.startDate.toDate() > now) return
+      if (announcement.endDate && announcement.endDate.toDate() < now) return
+      
+      announcements.push(announcement)
+    })
+    
+    callback(announcements)
+  })
+}
+
+export const dismissAnnouncement = async (userId: string, announcementId: string) => {
+  try {
+    const prefRef = doc(db, 'userPreferences', userId)
+    const prefDoc = await getDoc(prefRef)
+    
+    if (prefDoc.exists()) {
+      await updateDoc(prefRef, {
+        dismissedAnnouncements: arrayUnion(announcementId),
+        lastUpdated: serverTimestamp()
+      })
+    } else {
+      await setDoc(prefRef, {
+        userId,
+        dismissedAnnouncements: [announcementId],
+        darkMode: true,
+        notifications: true,
+        lastUpdated: serverTimestamp()
+      })
+    }
+  } catch (error) {
+    console.error('Error dismissing announcement:', error)
+    throw error
+  }
+}
+
+export const getUserPreferences = async (userId: string): Promise<FirebaseUserPreference | null> => {
+  try {
+    const prefRef = doc(db, 'userPreferences', userId)
+    const prefDoc = await getDoc(prefRef)
+    
+    if (prefDoc.exists()) {
+      return { ...prefDoc.data() } as FirebaseUserPreference
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting user preferences:', error)
+    return null
+  }
+}
