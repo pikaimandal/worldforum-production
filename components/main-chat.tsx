@@ -107,29 +107,50 @@ export default function MainChat({ user }: MainChatProps) {
         }
 
         // Subscribe to messages
+        console.log('MainChat: Setting up messages listener...')
         unsubscribeMessages = getMessages((firebaseMessages) => {
-          const transformedMessages: Message[] = firebaseMessages.map(msg => ({
-            id: msg.id,
-            userId: msg.userId,
-            username: msg.username,
-            isOrbVerified: user.isOrbVerified, // We'll need to get this from user data
-            text: msg.text,
-            timestamp: msg.timestamp.toDate(),
-            upvotes: msg.upvotes,
-            downvotes: msg.downvotes,
-            reactions: {},
-            replyTo: msg.replyTo,
-            replies: msg.replies,
-            userVote: null, // Will be loaded separately
-            profilePictureUrl: user.profilePictureUrl
-          }))
+          console.log('MainChat: Received messages from Firebase:', firebaseMessages.length, 'messages')
+          console.log('MainChat: Raw Firebase messages:', firebaseMessages)
+          
+          const transformedMessages: Message[] = firebaseMessages
+            .filter(msg => msg && msg.id && msg.timestamp) // Filter out invalid messages
+            .map(msg => {
+              try {
+                return {
+                  id: msg.id,
+                  userId: msg.userId,
+                  username: msg.username,
+                  isOrbVerified: user.isOrbVerified, // We'll need to get this from user data
+                  text: msg.text,
+                  timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(),
+                  upvotes: msg.upvotes || 0,
+                  downvotes: msg.downvotes || 0,
+                  reactions: {},
+                  replyTo: msg.replyTo,
+                  replies: msg.replies || [],
+                  userVote: null, // Will be loaded separately
+                  profilePictureUrl: user.profilePictureUrl
+                }
+              } catch (error) {
+                console.error('Error transforming message:', msg, error)
+                return null
+              }
+            })
+            .filter(msg => msg !== null) as Message[]
+            
+          console.log('MainChat: Transformed messages:', transformedMessages.length, 'messages')
+          console.log('MainChat: Final transformed messages:', transformedMessages)
           setMessages(transformedMessages)
 
           // Load user votes for each message
           if (user.id) {
             transformedMessages.forEach(async (msg) => {
-              const vote = await getUserVote(msg.id, user.id!)
-              setUserVotes(prev => ({ ...prev, [msg.id]: vote }))
+              try {
+                const vote = await getUserVote(msg.id, user.id!)
+                setUserVotes(prev => ({ ...prev, [msg.id]: vote }))
+              } catch (error) {
+                console.error('Error loading vote for message:', msg.id, error)
+              }
             })
           }
         })
@@ -288,7 +309,10 @@ export default function MainChat({ user }: MainChatProps) {
   }
 
   const handleSendMessage = async (text: string) => {
-    if (!user.id) return
+    if (!user.id) {
+      console.error('Cannot send message: user.id is missing')
+      return
+    }
     
     if (messageCount >= 5) {
       setIsRateLimited(true)
@@ -297,12 +321,16 @@ export default function MainChat({ user }: MainChatProps) {
     }
 
     try {
-      await createMessage({
+      console.log('Sending message:', { userId: user.id, username: user.username, text })
+      
+      const messageId = await createMessage({
         userId: user.id,
         username: user.username,
         text,
         replyTo: replyingTo || undefined,
       })
+      
+      console.log('Message created successfully with ID:', messageId)
 
       setMessageCount((prev) => prev + 1)
       setReplyingTo(null)
@@ -316,6 +344,8 @@ export default function MainChat({ user }: MainChatProps) {
       setTimeout(() => scrollToBottom(true), 100)
     } catch (error) {
       console.error('Error sending message:', error)
+      // Optionally show user-friendly error message
+      alert('Failed to send message. Please try again.')
     }
   }
 
@@ -348,6 +378,9 @@ export default function MainChat({ user }: MainChatProps) {
       }), {}) : {},
     userVote: userVotes[msg.id] || null
   }))
+
+  console.log('MainChat: Final messages for MessageFeed:', messagesWithReactionsAndVotes.length, 'messages')
+  console.log('MainChat: Messages with reactions/votes:', messagesWithReactionsAndVotes)
 
   if (isLoading) {
     return (

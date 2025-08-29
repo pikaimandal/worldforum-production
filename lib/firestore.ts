@@ -170,11 +170,29 @@ export const getMessages = (callback: (messages: FirebaseMessage[]) => void) => 
   const q = query(collection(db, 'messages'), orderBy('timestamp', 'asc'), limit(100))
   
   return onSnapshot(q, (querySnapshot) => {
-    const messages: FirebaseMessage[] = []
-    querySnapshot.forEach((doc) => {
-      messages.push({ id: doc.id, ...doc.data() } as FirebaseMessage)
-    })
-    callback(messages)
+    try {
+      const messages: FirebaseMessage[] = []
+      querySnapshot.forEach((doc) => {
+        try {
+          const data = doc.data()
+          if (data && data.userId && data.username && data.text) {
+            messages.push({ id: doc.id, ...data } as FirebaseMessage)
+          } else {
+            console.warn('Invalid message document:', doc.id, data)
+          }
+        } catch (error) {
+          console.error('Error processing message document:', doc.id, error)
+        }
+      })
+      console.log('Firebase getMessages returning:', messages.length, 'messages')
+      callback(messages)
+    } catch (error) {
+      console.error('Error in getMessages snapshot handler:', error)
+      callback([]) // Return empty array on error
+    }
+  }, (error) => {
+    console.error('Error in getMessages listener:', error)
+    callback([]) // Return empty array on error
   })
 }
 
