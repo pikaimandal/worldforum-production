@@ -332,12 +332,23 @@ export default function MainChat({ user }: MainChatProps) {
     try {
       console.log('Sending message:', { userId: user.id, username: user.username, text })
       
-      const messageId = await createMessage({
+      const messageData: {
+        userId: string;
+        username: string;
+        text: string;
+        replyTo?: string;
+      } = {
         userId: user.id,
         username: user.username,
         text,
-        replyTo: replyingTo || undefined,
-      })
+      }
+      
+      // Only add replyTo if it exists (Firestore doesn't accept undefined)
+      if (replyingTo) {
+        messageData.replyTo = replyingTo
+      }
+      
+      const messageId = await createMessage(messageData)
       
       console.log('Message created successfully with ID:', messageId)
 
