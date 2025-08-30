@@ -35,7 +35,14 @@ async function testFirebase() {
     });
     
     // Test reading users collection
-    console.log('\n👥 Reading users collection...');
+    console.log('\n� Reading reports collection...')
+  const reportsSnapshot = await getDocs(collection(db, 'reports'))
+  console.log(`Reports found: ${reportsSnapshot.size}`)
+  reportsSnapshot.forEach((doc) => {
+    console.log(`Report: ${doc.id}`, doc.data())
+  })
+
+  console.log('\n�👥 Reading users collection...');
     const usersSnapshot = await getDocs(collection(db, 'users'));
     console.log('Users found:', usersSnapshot.size);
     

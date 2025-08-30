@@ -378,6 +378,59 @@ export const createReport = async (reportData: Omit<FirebaseReport, 'id' | 'crea
   }
 }
 
+// Admin functions for managing reports
+export const updateReportStatus = async (reportId: string, status: 'reviewed' | 'resolved' | 'dismissed', adminId?: string, notes?: string) => {
+  try {
+    const reportRef = doc(db, 'reports', reportId)
+    const updateData: any = {
+      status,
+      reviewedAt: serverTimestamp(),
+    }
+    
+    if (adminId) updateData.reviewedBy = adminId
+    if (notes) updateData.notes = notes
+    
+    await updateDoc(reportRef, updateData)
+    console.log('Report status updated:', reportId, status)
+    return true
+  } catch (error) {
+    console.error('Error updating report status:', error)
+    throw error
+  }
+}
+
+export const deleteMessageAndUpdateReports = async (messageId: string, adminId?: string) => {
+  try {
+    console.log('Deleting message and updating related reports:', messageId)
+    
+    // First, update all reports for this message to 'resolved'
+    const reportsQuery = query(collection(db, 'reports'), where('messageId', '==', messageId))
+    const reportsSnapshot = await getDocs(reportsQuery)
+    
+    const reportUpdatePromises = reportsSnapshot.docs.map(reportDoc => 
+      updateDoc(reportDoc.ref, {
+        status: 'resolved',
+        reviewedAt: serverTimestamp(),
+        reviewedBy: adminId || 'system',
+        notes: 'Message deleted by admin'
+      })
+    )
+    
+    await Promise.all(reportUpdatePromises)
+    console.log(`Updated ${reportsSnapshot.size} reports to resolved status`)
+    
+    // Then delete the message
+    const messageRef = doc(db, 'messages', messageId)
+    await deleteDoc(messageRef)
+    console.log('Message deleted successfully')
+    
+    return { deletedMessage: true, updatedReports: reportsSnapshot.size }
+  } catch (error) {
+    console.error('Error deleting message and updating reports:', error)
+    throw error
+  }
+}
+
 // Announcement Management
 export const getActiveAnnouncements = (callback: (announcements: FirebaseAnnouncement[]) => void) => {
   const q = query(
