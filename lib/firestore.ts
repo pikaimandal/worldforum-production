@@ -40,6 +40,7 @@ export interface FirebaseMessage {
   timestamp: Timestamp
   upvotes: number
   downvotes: number
+  reportCount: number
   replyTo?: string
   replies: string[]
   isEdited: boolean
@@ -147,7 +148,7 @@ export const updateUserLastSeen = async (userId: string) => {
 }
 
 // Message Management
-export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 'timestamp' | 'upvotes' | 'downvotes' | 'replies' | 'isEdited'>) => {
+export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 'timestamp' | 'upvotes' | 'downvotes' | 'reportCount' | 'replies' | 'isEdited'>) => {
   try {
     console.log('Creating message:', messageData)
     
@@ -156,6 +157,7 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
       timestamp: serverTimestamp(),
       upvotes: 0,
       downvotes: 0,
+      reportCount: 0,
       replies: [],
       isEdited: false,
     })
@@ -356,6 +358,19 @@ export const createReport = async (reportData: Omit<FirebaseReport, 'id' | 'crea
     })
 
     console.log('Report created with ID:', reportRef.id)
+
+    // Increment the message's report count
+    try {
+      const messageRef = doc(db, 'messages', reportData.messageId)
+      await updateDoc(messageRef, {
+        reportCount: increment(1)
+      })
+      console.log('Updated message report count')
+    } catch (error) {
+      console.error('Error updating message report count:', error)
+      // Don't fail the whole operation if report count update fails
+    }
+
     return reportRef.id
   } catch (error) {
     console.error('Error creating report:', error)

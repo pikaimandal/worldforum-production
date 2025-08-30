@@ -35,6 +35,7 @@ interface Message {
   timestamp: Date
   upvotes: number
   downvotes: number
+  reportCount: number
   reactions: { [emoji: string]: number | string[] }
   replyTo?: string
   replies?: string[]
@@ -126,6 +127,7 @@ export default function MainChat({ user }: MainChatProps) {
                   timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(),
                   upvotes: msg.upvotes || 0,
                   downvotes: msg.downvotes || 0,
+                  reportCount: msg.reportCount || 0,
                   reactions: {},
                   replyTo: msg.replyTo,
                   replies: msg.replies || [],

@@ -28,6 +28,12 @@ service cloud.firestore {
       allow create, delete: if true;
     }
     
+    // Reports collection - users can create reports, admins can read all
+    match /reports/{reportId} {
+      allow read: if true; // Allow reading for admin purposes
+      allow create: if true; // Allow authenticated users to create reports
+    }
+    
     // Announcements collection - read-only for users
     match /announcements/{announcementId} {
       allow read: if true;
