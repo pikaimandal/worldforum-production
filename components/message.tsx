@@ -75,6 +75,11 @@ export default function Message({
                   src={replyToMessage.profilePictureUrl}
                   alt={`${replyToMessage.username} profile`}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to generated avatar if profile picture fails to load
+                    const img = e.target as HTMLImageElement;
+                    img.src = `https://api.dicebear.com/7.x/avatars/svg?seed=${replyToMessage.username}`;
+                  }}
                 />
               ) : (
                 <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
@@ -103,6 +108,11 @@ export default function Message({
                   src={message.profilePictureUrl}
                   alt={`${message.username} profile`}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to generated avatar if profile picture fails to load
+                    const img = e.target as HTMLImageElement;
+                    img.src = `https://api.dicebear.com/7.x/avatars/svg?seed=${message.username}`;
+                  }}
                 />
               ) : (
                 <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>

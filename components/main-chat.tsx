@@ -400,7 +400,7 @@ export default function MainChat({ user }: MainChatProps) {
       return
     }
     
-    if (messageCount >= 5) {
+    if (messageCount >= 10) {
       setIsRateLimited(true)
       setTimeout(() => setIsRateLimited(false), 3000)
       return
