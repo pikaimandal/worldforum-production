@@ -2,6 +2,8 @@
 
 import { MessageCircle, ThumbsUp, ThumbsDown, Smile, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { MiniKit } from '@worldcoin/minikit-js'
+import { useState, useEffect } from 'react'
 
 interface MessageType {
   id: string
@@ -31,6 +33,52 @@ interface MessageProps {
 }
 
 const VerificationBadge = () => <img src="/blue-checkmark.png" alt="Verified" className="w-4 h-4" />
+
+// Profile picture component that uses Minikit SDK directly
+const ProfilePicture = ({ username, size = "w-5 h-5", isDarkMode = false }: { username: string, size?: string, isDarkMode?: boolean }) => {
+  const [profileUrl, setProfileUrl] = useState<string>('')
+
+  useEffect(() => {
+    const getProfilePicture = async () => {
+      try {
+        // Try to get profile picture from Minikit
+        if (typeof window !== 'undefined' && MiniKit.user) {
+          const user = MiniKit.user
+          if (user.profilePictureUrl) {
+            setProfileUrl(user.profilePictureUrl)
+            return
+          }
+        }
+        
+        // Fallback to generated avatar
+        setProfileUrl(`https://api.dicebear.com/7.x/avatars/svg?seed=${username}`)
+      } catch (error) {
+        // Fallback to generated avatar on any error
+        setProfileUrl(`https://api.dicebear.com/7.x/avatars/svg?seed=${username}`)
+      }
+    }
+
+    getProfilePicture()
+  }, [username])
+
+  return (
+    <div className={`${size} rounded-full overflow-hidden flex-shrink-0`}>
+      {profileUrl ? (
+        <img
+          src={profileUrl}
+          alt={`${username} profile`}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
+          <span className="text-xs text-gray-500">
+            {username.charAt(1)?.toUpperCase() || "?"}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Message({
   message,
@@ -69,26 +117,7 @@ export default function Message({
           <div className="flex items-center space-x-2 mb-1">
             <span className="text-blue-500 text-sm">↳</span>
             {/* Profile picture for reply - 16x16 */}
-            <div className="w-4 h-4 rounded-full overflow-hidden flex-shrink-0">
-              {replyToMessage.profilePictureUrl ? (
-                <img
-                  src={replyToMessage.profilePictureUrl}
-                  alt={`${replyToMessage.username} profile`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to generated avatar if profile picture fails to load
-                    const img = e.target as HTMLImageElement;
-                    img.src = `https://api.dicebear.com/7.x/avatars/svg?seed=${replyToMessage.username}`;
-                  }}
-                />
-              ) : (
-                <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
-                  <span className="text-xs text-gray-500">
-                    {replyToMessage.username.charAt(1)?.toUpperCase() || "?"}
-                  </span>
-                </div>
-              )}
-            </div>
+            <ProfilePicture username={replyToMessage.username} size="w-4 h-4" isDarkMode={isDarkMode} />
             <span className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
               {replyToMessage.username}
             </span>
@@ -102,26 +131,7 @@ export default function Message({
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center space-x-2">
             {/* Profile picture for main message - 20x20 */}
-            <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
-              {message.profilePictureUrl ? (
-                <img
-                  src={message.profilePictureUrl}
-                  alt={`${message.username} profile`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to generated avatar if profile picture fails to load
-                    const img = e.target as HTMLImageElement;
-                    img.src = `https://api.dicebear.com/7.x/avatars/svg?seed=${message.username}`;
-                  }}
-                />
-              ) : (
-                <div className={`w-full h-full ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} flex items-center justify-center`}>
-                  <span className="text-xs text-gray-500">
-                    {message.username.charAt(1)?.toUpperCase() || "?"}
-                  </span>
-                </div>
-              )}
-            </div>
+            <ProfilePicture username={message.username} size="w-5 h-5" isDarkMode={isDarkMode} />
             <span className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{message.username}</span>
             {message.isOrbVerified && <VerificationBadge />}
             <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>

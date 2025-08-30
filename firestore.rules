@@ -2,11 +2,18 @@ rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'pikaimandal.01@gmail.com';
+    }
+    
     // Users collection - users can read all users, but only update their own
     match /users/{userId} {
       allow read: if true;
       allow create: if true;
       allow update: if true;
+      // Admin can do everything
+      allow write, delete: if isAdmin();
     }
     
     // Messages collection - all users can read and create
@@ -14,35 +21,46 @@ service cloud.firestore {
       allow read: if true;
       allow create: if true;
       allow update: if true;
+      // Admin can delete messages
+      allow delete: if isAdmin();
     }
     
     // Votes collection - users can create/update/delete their own votes
     match /votes/{voteId} {
       allow read: if true;
       allow create, update, delete: if true;
+      // Admin has full access
+      allow write, delete: if isAdmin();
     }
     
     // Reactions collection - users can create/delete their own reactions
     match /reactions/{reactionId} {
       allow read: if true;
       allow create, delete: if true;
+      // Admin has full access
+      allow write, delete: if isAdmin();
     }
     
     // Reports collection - users can create reports, admins can read all
     match /reports/{reportId} {
       allow read: if true; // Allow reading for admin purposes
       allow create: if true; // Allow authenticated users to create reports
+      // Admin has full access to manage reports
+      allow write, update, delete: if isAdmin();
     }
     
-    // Announcements collection - read-only for users
+    // Announcements collection - read-only for users, full access for admin
     match /announcements/{announcementId} {
       allow read: if true;
-      allow write: if true; // Allow for testing
+      // Only admin can create, update, delete announcements
+      allow write, create, update, delete: if isAdmin();
     }
     
     // User preferences - users can read/write their own preferences
     match /userPreferences/{userId} {
       allow read, write: if true;
+      // Admin has full access
+      allow write, delete: if isAdmin();
     }
   }
 }
