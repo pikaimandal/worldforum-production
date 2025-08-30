@@ -156,18 +156,31 @@ export default function MainChat({ user }: MainChatProps) {
             const lastReadIndex = transformedMessages.findIndex(msg => msg.id === lastReadMessageId)
             if (lastReadIndex !== -1) {
               setTimeout(() => {
-                scrollToMessage(lastReadMessageId)
+                // Auto-scroll to last read position WITHOUT updating the last read
+                const messageElement = document.getElementById(`message-${lastReadMessageId}`)
+                if (messageElement) {
+                  messageElement.scrollIntoView({ behavior: "auto", block: "center" })
+                  // Highlight briefly to show where user left off
+                  messageElement.style.backgroundColor = isDarkMode ? "#374151" : "#e5e7eb"
+                  setTimeout(() => {
+                    messageElement.style.backgroundColor = ""
+                  }, 2000) // Longer highlight for "welcome back" feeling
+                }
                 setHasScrolledToLastRead(true)
               }, 500) // Give time for DOM to render
             } else {
-              // If last read message not found, scroll to bottom (latest messages)
-              setTimeout(() => scrollToBottom(false), 100)
-              setHasScrolledToLastRead(true)
+              // If last read message not found (deleted?), scroll to bottom
+              setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+                setHasScrolledToLastRead(true)
+              }, 100)
             }
           } else if (!hasScrolledToLastRead) {
             // First time visit, scroll to bottom
-            setTimeout(() => scrollToBottom(false), 100)
-            setHasScrolledToLastRead(true)
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+              setHasScrolledToLastRead(true)
+            }, 100)
           }
 
           // Load user votes for each message
@@ -226,22 +239,22 @@ export default function MainChat({ user }: MainChatProps) {
     }
   }, [messages.length]) // Only re-subscribe when message count changes
 
-  const scrollToBottom = (smooth = false) => {
+  const scrollToBottom = (smooth = false, updateLastRead = true) => {
     if (smooth) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
     }
     
-    // Update last read message to the latest message when scrolling to bottom
-    if (user.id && messages.length > 0) {
+    // Only update last read message for manual scrolling (not auto-scroll on app load)
+    if (updateLastRead && user.id && messages.length > 0) {
       const latestMessage = messages[messages.length - 1]
       updateLastReadMessage(user.id, latestMessage.id)
       setLastReadMessageId(latestMessage.id)
     }
   }
 
-  const scrollToMessage = (messageId: string, fromReplyId?: string) => {
+  const scrollToMessage = (messageId: string, fromReplyId?: string, updateLastRead = true) => {
     const messageElement = document.getElementById(`message-${messageId}`)
     if (messageElement) {
       messageElement.scrollIntoView({ behavior: "auto", block: "center" })
@@ -257,8 +270,8 @@ export default function MainChat({ user }: MainChatProps) {
         setShowBackToReply(true)
       }
       
-      // Update last read message when user navigates to a message
-      if (user.id) {
+      // Only update last read message for manual navigation (not auto-scroll)
+      if (updateLastRead && user.id) {
         updateLastReadMessage(user.id, messageId)
         setLastReadMessageId(messageId)
       }
@@ -268,7 +281,7 @@ export default function MainChat({ user }: MainChatProps) {
   const goBackToReply = () => {
     if (navigationHistory.length > 0) {
       const replyId = navigationHistory[navigationHistory.length - 1]
-      scrollToMessage(replyId)
+      scrollToMessage(replyId, undefined, true) // Update last read when going back
       setNavigationHistory([])
       setShowBackToReply(false)
     }
@@ -279,7 +292,8 @@ export default function MainChat({ user }: MainChatProps) {
     // Only scroll when a new message is added (not when reactions/votes change)
     const lastMessage = messages[messages.length - 1]
     if (lastMessage && Date.now() - lastMessage.timestamp.getTime() < 1000) {
-      scrollToBottom()
+      // Auto-scroll to new messages without updating last read (user didn't manually read them)
+      scrollToBottom(false, false)
     }
   }, [messages]) // Only depend on message count, not the entire messages array
 
@@ -367,8 +381,8 @@ export default function MainChat({ user }: MainChatProps) {
 
   const handleReply = (messageId: string) => {
     setReplyingTo(messageId)
-    // Scroll to bottom immediately without animation (only for replies)
-    setTimeout(() => scrollToBottom(false), 100)
+    // Scroll to bottom for reply input without updating last read
+    setTimeout(() => scrollToBottom(false, false), 100)
   }
 
   const handleSendMessage = async (text: string) => {
@@ -425,8 +439,8 @@ export default function MainChat({ user }: MainChatProps) {
         setMessageCount((prev) => Math.max(0, prev - 1))
       }, 60000)
 
-      // Auto-scroll to bottom for new messages
-      setTimeout(() => scrollToBottom(true), 100)
+      // Auto-scroll to bottom for new messages and update last read
+      setTimeout(() => scrollToBottom(true, true), 100)
     } catch (error) {
       console.error('Error sending message:', error)
       
@@ -509,7 +523,7 @@ export default function MainChat({ user }: MainChatProps) {
         onReport={openReportModal}
         onReply={handleReply}
         onReactionClick={handleReactionClick}
-        onMessageClick={(messageId, fromReplyId) => scrollToMessage(messageId, fromReplyId)}
+        onMessageClick={(messageId, fromReplyId) => scrollToMessage(messageId, fromReplyId, true)} // Update last read when clicking messages
         isDarkMode={isDarkMode}
         currentUser={user.username}
       />
