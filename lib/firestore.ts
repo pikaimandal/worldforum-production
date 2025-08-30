@@ -36,6 +36,7 @@ export interface FirebaseMessage {
   id: string
   userId: string
   username: string
+  profilePictureUrl: string
   text: string
   timestamp: Timestamp
   upvotes: number
@@ -88,6 +89,8 @@ export interface FirebaseUserPreference {
   dismissedAnnouncements: string[]
   darkMode: boolean
   notifications: boolean
+  lastReadMessageId?: string
+  lastReadAt?: Timestamp
   lastUpdated: Timestamp
 }
 
@@ -495,5 +498,21 @@ export const getUserPreferences = async (userId: string): Promise<FirebaseUserPr
   } catch (error) {
     console.error('Error getting user preferences:', error)
     return null
+  }
+}
+
+export const updateLastReadMessage = async (userId: string, messageId: string) => {
+  try {
+    const prefRef = doc(db, 'userPreferences', userId)
+    await setDoc(prefRef, {
+      userId,
+      lastReadMessageId: messageId,
+      lastReadAt: serverTimestamp(),
+      lastUpdated: serverTimestamp(),
+    }, { merge: true })
+    
+    console.log('Updated last read message:', messageId)
+  } catch (error) {
+    console.error('Error updating last read message:', error)
   }
 }

@@ -22,7 +22,8 @@ import {
   getActiveAnnouncements,
   dismissAnnouncement,
   getUserPreferences,
-  updateUserLastSeen
+  updateUserLastSeen,
+  updateLastReadMessage
 } from "@/lib/firestore"
 import { Timestamp } from 'firebase/firestore'
 
@@ -80,6 +81,8 @@ export default function MainChat({ user }: MainChatProps) {
   const [navigationHistory, setNavigationHistory] = useState<string[]>([])
   const [showBackToReply, setShowBackToReply] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [lastReadMessageId, setLastReadMessageId] = useState<string | null>(null)
+  const [hasScrolledToLastRead, setHasScrolledToLastRead] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -97,7 +100,7 @@ export default function MainChat({ user }: MainChatProps) {
           await updateUserLastSeen(user.id)
         }
 
-        // Get user preferences for announcements
+        // Get user preferences for announcements and last read message
         if (user.id) {
           const preferences = await getUserPreferences(user.id)
           if (preferences?.dismissedAnnouncements) {
@@ -105,6 +108,9 @@ export default function MainChat({ user }: MainChatProps) {
           }
           if (preferences?.darkMode !== undefined) {
             setIsDarkMode(preferences.darkMode)
+          }
+          if (preferences?.lastReadMessageId) {
+            setLastReadMessageId(preferences.lastReadMessageId)
           }
         }
 
@@ -132,7 +138,7 @@ export default function MainChat({ user }: MainChatProps) {
                   replyTo: msg.replyTo,
                   replies: msg.replies || [],
                   userVote: null, // Will be loaded separately
-                  profilePictureUrl: user.profilePictureUrl
+                  profilePictureUrl: msg.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${msg.userId}`
                 }
               } catch (error) {
                 console.error('Error transforming message:', msg, error)
@@ -144,6 +150,25 @@ export default function MainChat({ user }: MainChatProps) {
           console.log('MainChat: Transformed messages:', transformedMessages.length, 'messages')
           console.log('MainChat: Final transformed messages:', transformedMessages)
           setMessages(transformedMessages)
+
+          // Scroll to last read message if available and not already scrolled
+          if (lastReadMessageId && !hasScrolledToLastRead && transformedMessages.length > 0) {
+            const lastReadIndex = transformedMessages.findIndex(msg => msg.id === lastReadMessageId)
+            if (lastReadIndex !== -1) {
+              setTimeout(() => {
+                scrollToMessage(lastReadMessageId)
+                setHasScrolledToLastRead(true)
+              }, 500) // Give time for DOM to render
+            } else {
+              // If last read message not found, scroll to bottom (latest messages)
+              setTimeout(() => scrollToBottom(false), 100)
+              setHasScrolledToLastRead(true)
+            }
+          } else if (!hasScrolledToLastRead) {
+            // First time visit, scroll to bottom
+            setTimeout(() => scrollToBottom(false), 100)
+            setHasScrolledToLastRead(true)
+          }
 
           // Load user votes for each message
           if (user.id) {
@@ -207,6 +232,13 @@ export default function MainChat({ user }: MainChatProps) {
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
     }
+    
+    // Update last read message to the latest message when scrolling to bottom
+    if (user.id && messages.length > 0) {
+      const latestMessage = messages[messages.length - 1]
+      updateLastReadMessage(user.id, latestMessage.id)
+      setLastReadMessageId(latestMessage.id)
+    }
   }
 
   const scrollToMessage = (messageId: string, fromReplyId?: string) => {
@@ -223,6 +255,12 @@ export default function MainChat({ user }: MainChatProps) {
       if (fromReplyId) {
         setNavigationHistory([fromReplyId])
         setShowBackToReply(true)
+      }
+      
+      // Update last read message when user navigates to a message
+      if (user.id) {
+        updateLastReadMessage(user.id, messageId)
+        setLastReadMessageId(messageId)
       }
     }
   }
@@ -360,11 +398,13 @@ export default function MainChat({ user }: MainChatProps) {
       const messageData: {
         userId: string;
         username: string;
+        profilePictureUrl: string;
         text: string;
         replyTo?: string;
       } = {
         userId: user.id,
         username: user.username,
+        profilePictureUrl: user.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}`,
         text,
       }
       
