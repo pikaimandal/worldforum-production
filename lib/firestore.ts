@@ -36,6 +36,7 @@ export interface FirebaseMessage {
   id: string
   userId: string
   username: string
+  isOrbVerified: boolean
   profilePictureUrl: string
   text: string
   timestamp: Timestamp
@@ -94,7 +95,6 @@ export const createUser = async (userData: Omit<FirebaseUser, 'id' | 'createdAt'
     })
     return userRef.id
   } catch (error) {
-    console.error('Error creating user:', error)
     throw error
   }
 }
@@ -130,8 +130,6 @@ export const updateUserLastSeen = async (userId: string) => {
 // Message Management
 export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 'timestamp' | 'upvotes' | 'downvotes' | 'reportCount' | 'replies' | 'isEdited'>) => {
   try {
-    console.log('Creating message:', messageData)
-    
     const messageRef = await addDoc(collection(db, 'messages'), {
       ...messageData,
       timestamp: serverTimestamp(),
@@ -142,8 +140,6 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
       isEdited: false,
     })
 
-    console.log('Message document created with ID:', messageRef.id)
-
     // If this is a reply, add to parent's replies array
     if (messageData.replyTo) {
       try {
@@ -151,8 +147,7 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
         await updateDoc(parentRef, {
           replies: arrayUnion(messageRef.id)
         })
-        console.log('Updated parent message replies')
-      } catch (error) {
+        } catch (error) {
         console.error('Error updating parent message replies:', error)
         // Don't fail the whole operation if reply update fails
       }
@@ -164,8 +159,7 @@ export const createMessage = async (messageData: Omit<FirebaseMessage, 'id' | 't
       await updateDoc(userRef, {
         messageCount: increment(1)
       })
-      console.log('Updated user message count')
-    } catch (error) {
+      } catch (error) {
       console.error('Error updating user message count:', error)
       // Don't fail the whole operation if user update fails
     }
@@ -197,13 +191,11 @@ export const getMessages = (callback: (messages: FirebaseMessage[]) => void) => 
           if (data && data.userId && data.username && data.text) {
             messages.push({ id: doc.id, ...data } as FirebaseMessage)
           } else {
-            console.warn('Invalid message document:', doc.id, data)
-          }
+            }
         } catch (error) {
           console.error('Error processing message document:', doc.id, error)
         }
       })
-      console.log('Firebase getMessages returning:', messages.length, 'messages')
       callback(messages)
     } catch (error) {
       console.error('Error in getMessages snapshot handler:', error)
@@ -329,15 +321,11 @@ export const getMessageReactions = (messageId: string, callback: (reactions: { [
 // Report Management
 export const createReport = async (reportData: Omit<FirebaseReport, 'id' | 'createdAt' | 'status'>) => {
   try {
-    console.log('Creating report:', reportData)
-    
     const reportRef = await addDoc(collection(db, 'reports'), {
       ...reportData,
       status: 'pending',
       createdAt: serverTimestamp(),
     })
-
-    console.log('Report created with ID:', reportRef.id)
 
     // Increment the message's report count
     try {
@@ -345,8 +333,7 @@ export const createReport = async (reportData: Omit<FirebaseReport, 'id' | 'crea
       await updateDoc(messageRef, {
         reportCount: increment(1)
       })
-      console.log('Updated message report count')
-    } catch (error) {
+      } catch (error) {
       console.error('Error updating message report count:', error)
       // Don't fail the whole operation if report count update fails
     }
@@ -371,7 +358,6 @@ export const updateReportStatus = async (reportId: string, status: 'reviewed' | 
     if (notes) updateData.notes = notes
     
     await updateDoc(reportRef, updateData)
-    console.log('Report status updated:', reportId, status)
     return true
   } catch (error) {
     console.error('Error updating report status:', error)
@@ -381,8 +367,6 @@ export const updateReportStatus = async (reportId: string, status: 'reviewed' | 
 
 export const deleteMessageAndUpdateReports = async (messageId: string, adminId?: string) => {
   try {
-    console.log('Deleting message and updating related reports:', messageId)
-    
     // First, update all reports for this message to 'resolved'
     const reportsQuery = query(collection(db, 'reports'), where('messageId', '==', messageId))
     const reportsSnapshot = await getDocs(reportsQuery)
@@ -397,13 +381,10 @@ export const deleteMessageAndUpdateReports = async (messageId: string, adminId?:
     )
     
     await Promise.all(reportUpdatePromises)
-    console.log(`Updated ${reportsSnapshot.size} reports to resolved status`)
     
     // Then delete the message
     const messageRef = doc(db, 'messages', messageId)
     await deleteDoc(messageRef)
-    console.log('Message deleted successfully')
-    
     return { deletedMessage: true, updatedReports: reportsSnapshot.size }
   } catch (error) {
     console.error('Error deleting message and updating reports:', error)
@@ -436,8 +417,10 @@ export const updateLastReadMessage = async (userId: string, messageId: string) =
       lastUpdated: serverTimestamp(),
     }, { merge: true })
     
-    console.log('Updated last read message:', messageId)
-  } catch (error) {
+    } catch (error) {
     console.error('Error updating last read message:', error)
   }
 }
+
+
+

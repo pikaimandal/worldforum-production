@@ -92,10 +92,7 @@ export default function MainChat({ user }: MainChatProps) {
         }
 
         // Subscribe to messages
-        console.log('MainChat: Setting up messages listener...')
         unsubscribeMessages = getMessages((firebaseMessages) => {
-          console.log('MainChat: Received messages from Firebase:', firebaseMessages.length, 'messages')
-          console.log('MainChat: Raw Firebase messages:', firebaseMessages)
           
           const transformedMessages: Message[] = firebaseMessages
             .filter(msg => msg && msg.id && msg.timestamp) // Filter out invalid messages
@@ -105,7 +102,7 @@ export default function MainChat({ user }: MainChatProps) {
                   id: msg.id,
                   userId: msg.userId,
                   username: msg.username,
-                  isOrbVerified: user.isOrbVerified, // We'll need to get this from user data
+                  isOrbVerified: msg.isOrbVerified || false,
                   text: msg.text,
                   timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(),
                   upvotes: msg.upvotes || 0,
@@ -118,14 +115,11 @@ export default function MainChat({ user }: MainChatProps) {
                   profilePictureUrl: msg.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${msg.userId}`
                 }
               } catch (error) {
-                console.error('Error transforming message:', msg, error)
                 return null
               }
             })
             .filter(msg => msg !== null) as Message[]
-            
-          console.log('MainChat: Transformed messages:', transformedMessages.length, 'messages')
-          console.log('MainChat: Final transformed messages:', transformedMessages)
+          
           setMessages(transformedMessages)
 
           // Scroll to last read message if available and not already scrolled
@@ -167,7 +161,7 @@ export default function MainChat({ user }: MainChatProps) {
                 const vote = await getUserVote(msg.id, user.id!)
                 setUserVotes(prev => ({ ...prev, [msg.id]: vote }))
               } catch (error) {
-                console.error('Error loading vote for message:', msg.id, error)
+                // Silently fail vote loading
               }
             })
           }
@@ -175,7 +169,6 @@ export default function MainChat({ user }: MainChatProps) {
 
         setIsLoading(false)
       } catch (error) {
-        console.error('Error initializing data:', error)
         setIsLoading(false)
       }
     }
@@ -280,7 +273,7 @@ export default function MainChat({ user }: MainChatProps) {
         setUserVotes(prev => ({ ...prev, [messageId]: type }))
       }
     } catch (error) {
-      console.error('Error voting:', error)
+      // Silently handle voting errors
     }
   }
 
@@ -290,7 +283,7 @@ export default function MainChat({ user }: MainChatProps) {
     try {
       await reactToMessage(messageId, user.id, emoji)
     } catch (error) {
-      console.error('Error reacting:', error)
+      // Silently handle reaction errors
     }
     
     setShowEmojiPicker(false)
@@ -304,26 +297,20 @@ export default function MainChat({ user }: MainChatProps) {
 
   const handleReport = async (messageId: string, reason: string) => {
     if (!user.id) {
-      console.error('Cannot submit report: user.id is missing')
       setShowReportModal(false)
       setReportingMessageId(null)
       return
     }
     
     try {
-      console.log(`Reporting message ${messageId} for: ${reason}`)
-      
       await createReport({
         messageId,
         reporterId: user.id,
         reporterUsername: user.username,
         reason,
       })
-      
-      console.log('Report submitted successfully')
     } catch (error) {
-      console.error('Error submitting report:', error)
-      // Still close the modal even if report fails
+      // Silently handle report errors
     }
     
     setShowReportModal(false)
@@ -353,16 +340,12 @@ export default function MainChat({ user }: MainChatProps) {
   }
 
   const handleSendMessage = async (text: string) => {
-    console.log('handleSendMessage called with:', { text, user })
-    
     if (!user.id) {
-      console.error('Cannot send message: user.id is missing')
       alert('Error: User ID is missing. Please try logging in again.')
       return
     }
     
     if (!user.username) {
-      console.error('Cannot send message: user.username is missing')
       alert('Error: Username is missing. Please try logging in again.')
       return
     }
@@ -374,17 +357,17 @@ export default function MainChat({ user }: MainChatProps) {
     }
 
     try {
-      console.log('Sending message:', { userId: user.id, username: user.username, text })
-      
       const messageData: {
         userId: string;
         username: string;
+        isOrbVerified: boolean;
         profilePictureUrl: string;
         text: string;
         replyTo?: string;
       } = {
         userId: user.id,
         username: user.username,
+        isOrbVerified: user.isOrbVerified,
         profilePictureUrl: user.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.id}`,
         text,
       }
@@ -395,8 +378,6 @@ export default function MainChat({ user }: MainChatProps) {
       }
       
       const messageId = await createMessage(messageData)
-      
-      console.log('Message created successfully with ID:', messageId)
 
       setMessageCount((prev) => prev + 1)
       setReplyingTo(null)
@@ -409,20 +390,8 @@ export default function MainChat({ user }: MainChatProps) {
       // Auto-scroll to bottom for new messages and update last read
       setTimeout(() => scrollToBottom(true, true), 100)
     } catch (error) {
-      console.error('Error sending message:', error)
-      
-      // Show detailed error message in popup
-      let errorMessage = 'Failed to send message. Please try again.'
-      
-      if (error instanceof Error) {
-        errorMessage = `Error: ${error.message}`
-      } else if (typeof error === 'string') {
-        errorMessage = `Error: ${error}`
-      } else if (error && typeof error === 'object') {
-        errorMessage = `Error: ${JSON.stringify(error)}`
-      }
-      
-      alert(`Failed to send message!\n\nDetails: ${errorMessage}\n\nUser ID: ${user.id}\nUsername: ${user.username}`)
+      // Show simplified error message
+      alert('Failed to send message. Please try again.')
     }
   }
 
@@ -443,9 +412,6 @@ export default function MainChat({ user }: MainChatProps) {
       }), {}) : {},
     userVote: userVotes[msg.id] || null
   }))
-
-  console.log('MainChat: Final messages for MessageFeed:', messagesWithReactionsAndVotes.length, 'messages')
-  console.log('MainChat: Messages with reactions/votes:', messagesWithReactionsAndVotes)
 
   if (isLoading) {
     return (

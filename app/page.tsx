@@ -96,7 +96,6 @@ export default function WorldForumApp() {
         throw new Error("Wallet authentication failed")
       }
     } catch (error) {
-      console.error("Authentication error:", error)
       setError(error instanceof Error ? error.message : "Authentication failed")
       setAuthState("splash")
     }
