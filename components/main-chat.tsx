@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import TopBar from "@/components/top-bar"
-import AnnouncementBanner from "@/components/announcement-banner"
 import MessageFeed from "@/components/message-feed"
 import MessageInput from "@/components/message-input"
 import EmojiPicker from "@/components/emoji-picker"
@@ -19,8 +18,6 @@ import {
   getUserVote, 
   reactToMessage, 
   getMessageReactions,
-  getActiveAnnouncements,
-  dismissAnnouncement,
   getUserPreferences,
   updateUserLastSeen,
   updateLastReadMessage
@@ -44,28 +41,12 @@ interface Message {
   profilePictureUrl?: string
 }
 
-interface Announcement {
-  id: string
-  content: string
-  type: 'info' | 'warning' | 'success' | 'error'
-  priority: 'low' | 'normal' | 'high'
-  isActive: boolean
-  isDismissible: boolean
-  styling?: {
-    backgroundColor: string
-    textColor: string
-    iconEmoji?: string
-  }
-}
-
 interface MainChatProps {
   user: WorldUser
 }
 
 export default function MainChat({ user }: MainChatProps) {
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const [activeAnnouncements, setActiveAnnouncements] = useState<Announcement[]>([])
-  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [messageReactions, setMessageReactions] = useState<{ [messageId: string]: { [emoji: string]: { count: number, users: string[] } } }>({})
   const [userVotes, setUserVotes] = useState<{ [messageId: string]: 'up' | 'down' | null }>({})
@@ -89,7 +70,6 @@ export default function MainChat({ user }: MainChatProps) {
   // Initialize Firebase data
   useEffect(() => {
     let unsubscribeMessages: (() => void) | undefined
-    let unsubscribeAnnouncements: (() => void) | undefined
 
     const initializeData = async () => {
       try {
@@ -100,12 +80,9 @@ export default function MainChat({ user }: MainChatProps) {
           await updateUserLastSeen(user.id)
         }
 
-        // Get user preferences for announcements and last read message
+        // Get user preferences for last read message
         if (user.id) {
           const preferences = await getUserPreferences(user.id)
-          if (preferences?.dismissedAnnouncements) {
-            setDismissedAnnouncements(preferences.dismissedAnnouncements)
-          }
           if (preferences?.darkMode !== undefined) {
             setIsDarkMode(preferences.darkMode)
           }
@@ -196,15 +173,6 @@ export default function MainChat({ user }: MainChatProps) {
           }
         })
 
-        // Subscribe to announcements
-        unsubscribeAnnouncements = getActiveAnnouncements((announcements) => {
-          // Filter out dismissed announcements
-          const filteredAnnouncements = announcements.filter(
-            ann => !dismissedAnnouncements.includes(ann.id)
-          )
-          setActiveAnnouncements(filteredAnnouncements)
-        })
-
         setIsLoading(false)
       } catch (error) {
         console.error('Error initializing data:', error)
@@ -216,9 +184,8 @@ export default function MainChat({ user }: MainChatProps) {
 
     return () => {
       if (unsubscribeMessages) unsubscribeMessages()
-      if (unsubscribeAnnouncements) unsubscribeAnnouncements()
     }
-  }, [user.id, dismissedAnnouncements])
+  }, [user.id])
 
   // Subscribe to reactions for each message
   useEffect(() => {
@@ -459,18 +426,6 @@ export default function MainChat({ user }: MainChatProps) {
     }
   }
 
-  const handleDismissAnnouncement = async (announcementId: string) => {
-    if (!user.id) return
-
-    try {
-      await dismissAnnouncement(user.id, announcementId)
-      setDismissedAnnouncements(prev => [...prev, announcementId])
-      setActiveAnnouncements(prev => prev.filter(ann => ann.id !== announcementId))
-    } catch (error) {
-      console.error('Error dismissing announcement:', error)
-    }
-  }
-
   const handleEmojiSelect = (emoji: string) => {
     if (emojiPickerMode === "reaction" && selectedMessageForEmoji) {
       handleEmojiReact(selectedMessageForEmoji, emoji)
@@ -506,15 +461,6 @@ export default function MainChat({ user }: MainChatProps) {
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark bg-gray-900" : "bg-gray-50"}`}>
       <TopBar isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} />
-
-      {activeAnnouncements.map((announcement) => (
-        <AnnouncementBanner 
-          key={announcement.id}
-          announcement={announcement}
-          onClose={() => handleDismissAnnouncement(announcement.id)}
-          isDarkMode={isDarkMode}
-        />
-      ))}
 
       <MessageFeed
         messages={messagesWithReactionsAndVotes}

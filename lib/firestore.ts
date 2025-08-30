@@ -62,31 +62,8 @@ export interface FirebaseReaction {
   createdAt: Timestamp
 }
 
-export interface FirebaseAnnouncement {
-  id: string
-  content: string
-  type: 'info' | 'warning' | 'success' | 'error'
-  priority: 'low' | 'normal' | 'high'
-  isActive: boolean
-  isDismissible: boolean
-  autoHide: boolean
-  hideAfter?: number
-  startDate?: Timestamp
-  endDate?: Timestamp
-  targetUsers: 'all' | 'verified' | 'new_users'
-  styling?: {
-    backgroundColor: string
-    textColor: string
-    borderColor?: string
-    iconEmoji?: string
-  }
-  createdAt: Timestamp
-  updatedAt: Timestamp
-}
-
 export interface FirebaseUserPreference {
   userId: string
-  dismissedAnnouncements: string[]
   darkMode: boolean
   notifications: boolean
   lastReadMessageId?: string
@@ -430,58 +407,6 @@ export const deleteMessageAndUpdateReports = async (messageId: string, adminId?:
     return { deletedMessage: true, updatedReports: reportsSnapshot.size }
   } catch (error) {
     console.error('Error deleting message and updating reports:', error)
-    throw error
-  }
-}
-
-// Announcement Management
-export const getActiveAnnouncements = (callback: (announcements: FirebaseAnnouncement[]) => void) => {
-  const q = query(
-    collection(db, 'announcements'), 
-    where('isActive', '==', true),
-    orderBy('priority', 'desc'),
-    orderBy('createdAt', 'desc')
-  )
-  
-  return onSnapshot(q, (querySnapshot) => {
-    const announcements: FirebaseAnnouncement[] = []
-    const now = new Date()
-    
-    querySnapshot.forEach((doc) => {
-      const announcement = { id: doc.id, ...doc.data() } as FirebaseAnnouncement
-      
-      // Check if announcement is within date range
-      if (announcement.startDate && announcement.startDate.toDate() > now) return
-      if (announcement.endDate && announcement.endDate.toDate() < now) return
-      
-      announcements.push(announcement)
-    })
-    
-    callback(announcements)
-  })
-}
-
-export const dismissAnnouncement = async (userId: string, announcementId: string) => {
-  try {
-    const prefRef = doc(db, 'userPreferences', userId)
-    const prefDoc = await getDoc(prefRef)
-    
-    if (prefDoc.exists()) {
-      await updateDoc(prefRef, {
-        dismissedAnnouncements: arrayUnion(announcementId),
-        lastUpdated: serverTimestamp()
-      })
-    } else {
-      await setDoc(prefRef, {
-        userId,
-        dismissedAnnouncements: [announcementId],
-        darkMode: true,
-        notifications: true,
-        lastUpdated: serverTimestamp()
-      })
-    }
-  } catch (error) {
-    console.error('Error dismissing announcement:', error)
     throw error
   }
 }
