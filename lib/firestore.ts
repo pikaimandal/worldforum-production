@@ -90,6 +90,19 @@ export interface FirebaseUserPreference {
   lastUpdated: Timestamp
 }
 
+export interface FirebaseReport {
+  id?: string
+  messageId: string
+  reporterId: string
+  reporterUsername: string
+  reason: string
+  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed'
+  createdAt: Timestamp
+  reviewedAt?: Timestamp
+  reviewedBy?: string
+  notes?: string
+}
+
 // User Management
 export const createUser = async (userData: Omit<FirebaseUser, 'id' | 'createdAt' | 'lastSeen'>) => {
   try {
@@ -329,6 +342,25 @@ export const getMessageReactions = (messageId: string, callback: (reactions: { [
     
     callback(reactions)
   })
+}
+
+// Report Management
+export const createReport = async (reportData: Omit<FirebaseReport, 'id' | 'createdAt' | 'status'>) => {
+  try {
+    console.log('Creating report:', reportData)
+    
+    const reportRef = await addDoc(collection(db, 'reports'), {
+      ...reportData,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    })
+
+    console.log('Report created with ID:', reportRef.id)
+    return reportRef.id
+  } catch (error) {
+    console.error('Error creating report:', error)
+    throw error
+  }
 }
 
 // Announcement Management

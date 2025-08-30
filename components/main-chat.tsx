@@ -14,6 +14,7 @@ import { WorldUser } from "@/types/user"
 import { 
   getMessages, 
   createMessage, 
+  createReport,
   voteMessage, 
   getUserVote, 
   reactToMessage, 
@@ -280,8 +281,30 @@ export default function MainChat({ user }: MainChatProps) {
     // Don't scroll to bottom when clicking reactions
   }
 
-  const handleReport = (messageId: string, reason: string) => {
-    console.log(`Reported message ${messageId} for: ${reason}`)
+  const handleReport = async (messageId: string, reason: string) => {
+    if (!user.id) {
+      console.error('Cannot submit report: user.id is missing')
+      setShowReportModal(false)
+      setReportingMessageId(null)
+      return
+    }
+    
+    try {
+      console.log(`Reporting message ${messageId} for: ${reason}`)
+      
+      await createReport({
+        messageId,
+        reporterId: user.id,
+        reporterUsername: user.username,
+        reason,
+      })
+      
+      console.log('Report submitted successfully')
+    } catch (error) {
+      console.error('Error submitting report:', error)
+      // Still close the modal even if report fails
+    }
+    
     setShowReportModal(false)
     setReportingMessageId(null)
   }
