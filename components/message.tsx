@@ -51,10 +51,10 @@ const ProfilePicture = ({ username, size = "w-5 h-5", isDarkMode = false }: { us
         }
         
         // Fallback to generated avatar
-        setProfileUrl(`https://api.dicebear.com/7.x/avatars/svg?seed=${username}`)
+        setProfileUrl(`https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`)
       } catch (error) {
         // Fallback to generated avatar on any error
-        setProfileUrl(`https://api.dicebear.com/7.x/avatars/svg?seed=${username}`)
+        setProfileUrl(`https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`)
       }
     }
 

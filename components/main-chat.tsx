@@ -115,7 +115,7 @@ export default function MainChat({ user }: MainChatProps) {
                   replyTo: msg.replyTo,
                   replies: msg.replies || [],
                   userVote: null, // Will be loaded separately
-                  profilePictureUrl: msg.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${msg.userId}`
+                  profilePictureUrl: msg.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${msg.userId}`
                 }
               } catch (error) {
                 console.error('Error transforming message:', msg, error)
@@ -385,7 +385,7 @@ export default function MainChat({ user }: MainChatProps) {
       } = {
         userId: user.id,
         username: user.username,
-        profilePictureUrl: user.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}`,
+        profilePictureUrl: user.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.id}`,
         text,
       }
       

@@ -62,7 +62,7 @@ export default function WorldForumApp() {
             username,
             walletAddress: authData.address,
             isOrbVerified,
-            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${authData.address}`,
+            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${authData.address}`,
             messageCount: 0,
             reputation: 0
           })
@@ -72,7 +72,7 @@ export default function WorldForumApp() {
             username,
             walletAddress: authData.address,
             isOrbVerified,
-            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/7.x/avatars/svg?seed=${authData.address}`,
+            profilePictureUrl: MiniKit.user?.profilePictureUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${authData.address}`,
             messageCount: 0,
             reputation: 0,
             createdAt: new Date() as any,
